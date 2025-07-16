@@ -71,3 +71,46 @@ def pregunta_01():
 
 
     """
+
+    import os
+    import pandas as pd
+    import zipfile
+
+    zip_file_path = 'files/input.zip'
+
+    extract_to_dir = '.' 
+
+    if os.path.exists(zip_file_path):
+        with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
+            zip_ref.extractall(extract_to_dir)
+    else:
+        print(f"Error: {zip_file_path} not found.")
+        return None, None
+
+    input_dir = 'input'
+    output_dir = 'files/output'
+
+    os.makedirs(output_dir, exist_ok=True)
+
+    def create_dataset(data_type):
+        dataset = []
+        for sentiment in ['positive', 'negative', 'neutral']:
+            sentiment_dir = os.path.join(input_dir, data_type, sentiment)
+            for filename in os.listdir(sentiment_dir):
+                if filename.endswith('.txt'):
+                    file_path = os.path.join(sentiment_dir, filename)
+                    with open(file_path, 'r', encoding='utf-8') as file:
+                        phrase = file.read().strip()
+                        dataset.append({'phrase': phrase, 'target': sentiment})
+        return pd.DataFrame(dataset)
+
+    train_df = create_dataset('train')
+    test_df = create_dataset('test')
+
+    train_df.to_csv(os.path.join(output_dir, 'train_dataset.csv'), index=False)
+    test_df.to_csv(os.path.join(output_dir, 'test_dataset.csv'), index=False)
+    print(train_df.head())
+    print(test_df.head())
+    return train_df, test_df
+
+pregunta_01()
